@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>안서진 · 정보보안 / 디지털 포렌식</title>
+<meta name="description" content="안서진 포트폴리오 — 디지털 포렌식과 클라우드 보안을 중심으로 분석하고 직접 구현해 온 주니어 보안 엔지니어." />
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
+
+<style>
+  :root{
+    --ink:#0E1116;
+    --ink-2:#11161D;
+    --panel:#161C25;
+    --panel-2:#1B222C;
+    --line:#262E39;
+    --line-soft:#1F2630;
+    --text:#E7EAEF;
+    --muted:#8A93A1;
+    --muted-2:#5F6772;
+    --evidence:#E8A33D;   /* signature: evidence-tag amber */
+    --evidence-dim:#9c7330;
+    --trace:#62C2C0;      /* interactive / links */
+    --paper:#ECE7DB;
+
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+    --display:"Space Grotesk","Pretendard Variable",sans-serif;
+    --sans:"Pretendard Variable","Space Grotesk",system-ui,sans-serif;
+
+    --maxw:1080px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto;}}
+
+  body{
+    margin:0;
+    background:var(--ink);
+    color:var(--text);
+    font-family:var(--sans);
+    font-weight:400;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--evidence);color:#1a1205;}
+
+  /* ---- focus ---- */
+  a:focus-visible,button:focus-visible{
+    outline:2px solid var(--trace);
+    outline-offset:3px;
+    border-radius:2px;
+  }
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 28px;}
+
+  /* utility: monospace meta */
+  .mono{font-family:var(--mono);font-feature-settings:"zero" 1;}
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--evidence);
+  }
+
+  /* ================= NAV ================= */
+  nav{
+    position:sticky;top:0;z-index:50;
+    background:rgba(14,17,22,.72);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line-soft);
+  }
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px;}
+  .brand{font-family:var(--mono);font-size:14px;letter-spacing:.04em;display:flex;align-items:center;gap:9px;}
+  .brand .dot{width:8px;height:8px;border-radius:50%;background:var(--evidence);box-shadow:0 0 0 4px rgba(232,163,61,.16);}
+  .brand b{font-weight:600;}
+  .navlinks{display:flex;gap:26px;font-family:var(--mono);font-size:13px;color:var(--muted);}
+  .navlinks a{transition:color .18s;}
+  .navlinks a:hover{color:var(--text);}
+  @media(max-width:680px){.navlinks{display:none;}}
+
+  /* ================= HERO ================= */
+  header.hero{
+    position:relative;
+    padding:104px 0 92px;
+    border-bottom:1px solid var(--line-soft);
+    overflow:hidden;
+  }
+  header.hero::before{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(var(--line-soft) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
+    background-size:46px 46px;
+    -webkit-mask-image:radial-gradient(120% 90% at 18% 0%,#000 0%,transparent 62%);
+            mask-image:radial-gradient(120% 90% at 18% 0%,#000 0%,transparent 62%);
+    opacity:.5;pointer-events:none;
+  }
+  header.hero::after{
+    content:"";position:absolute;top:-30%;right:-12%;
+    width:560px;height:560px;border-radius:50%;
+    background:radial-gradient(circle,rgba(232,163,61,.16),transparent 66%);
+    pointer-events:none;
+  }
+  .hero-inner{position:relative;z-index:1;}
+
+  .casebar{
+    display:flex;flex-wrap:wrap;gap:8px 22px;
+    font-family:var(--mono);font-size:12px;color:var(--muted);
+    margin-bottom:30px;
+  }
+  .casebar span{display:inline-flex;align-items:center;gap:8px;}
+  .casebar b{color:var(--evidence);font-weight:500;}
+  .status-dot{width:7px;height:7px;border-radius:50%;background:var(--trace);
+    box-shadow:0 0 0 0 rgba(98,194,192,.5);animation:pulse 2.4s infinite;}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(98,194,192,.45);}70%{box-shadow:0 0 0 9px rgba(98,194,192,0);}100%{box-shadow:0 0 0 0 rgba(98,194,192,0);}}
+  @media(prefers-reduced-motion:reduce){.status-dot{animation:none;}}
+
+  h1.name{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:clamp(54px,11vw,118px);
+    line-height:.96;
+    letter-spacing:-.01em;
+    margin:0;
+  }
+  h1.name .en{display:block;color:var(--muted-2);font-size:clamp(15px,2.4vw,22px);
+    font-weight:500;letter-spacing:.32em;text-transform:uppercase;margin-top:18px;}
+  .role{
+    margin:26px 0 0;
+    font-size:clamp(18px,2.6vw,23px);
+    color:var(--text);
+    max-width:34ch;
+    line-height:1.5;
+  }
+  .role .hl{color:var(--evidence);}
+  .lead{margin:20px 0 0;color:var(--muted);max-width:52ch;font-size:16px;}
+
+  .hero-cta{display:flex;flex-wrap:wrap;gap:14px;margin-top:36px;}
+  .btn{
+    font-family:var(--mono);font-size:13.5px;letter-spacing:.03em;
+    padding:12px 20px;border-radius:7px;border:1px solid var(--line);
+    display:inline-flex;align-items:center;gap:9px;transition:all .18s;
+  }
+  .btn .arr{color:var(--evidence);}
+  .btn-primary{background:var(--evidence);color:#1a1205;border-color:var(--evidence);font-weight:600;}
+  .btn-primary .arr{color:#1a1205;}
+  .btn-primary:hover{filter:brightness(1.08);transform:translateY(-2px);}
+  .btn-ghost:hover{border-color:var(--trace);color:#fff;transform:translateY(-2px);}
+
+  /* ================= SECTION SHELL ================= */
+  section{padding:88px 0;border-bottom:1px solid var(--line-soft);}
+  .sec-head{display:flex;align-items:baseline;gap:16px;margin-bottom:44px;}
+  .sec-idx{font-family:var(--mono);font-size:13px;color:var(--evidence);letter-spacing:.05em;}
+  .sec-title{font-family:var(--display);font-weight:600;font-size:clamp(26px,4vw,38px);letter-spacing:-.01em;margin:0;}
+  .sec-rule{flex:1;height:1px;background:var(--line);align-self:center;margin-left:6px;}
+
+  /* ---- about ---- */
+  .about-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:48px;}
+  @media(max-width:760px){.about-grid{grid-template-columns:1fr;gap:32px;}}
+  .about-grid p{font-size:17px;color:#cfd4db;margin:0 0 16px;}
+  .about-grid p strong{color:#fff;font-weight:600;}
+  .focus-card{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:22px 22px 24px;}
+  .focus-card h3{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin:0 0 16px;}
+  .tags{display:flex;flex-wrap:wrap;gap:9px;}
+  .tag{font-family:var(--mono);font-size:12.5px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;color:#c8cdd5;background:var(--ink-2);}
+  .tag.key{border-color:var(--evidence-dim);color:var(--evidence);}
+
+  /* ---- projects ---- */
+  .proj-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;}
+  @media(max-width:760px){.proj-grid{grid-template-columns:1fr;}}
+  .card{
+    position:relative;border:1px solid var(--line);border-radius:14px;background:var(--panel);
+    padding:26px 24px 24px;transition:border-color .2s,transform .2s,background .2s;
+    display:flex;flex-direction:column;
+  }
+  .card:hover{border-color:var(--evidence-dim);transform:translateY(-3px);background:var(--panel-2);}
+  .card .evid{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--evidence);margin-bottom:14px;display:flex;justify-content:space-between;}
+  .card .evid .yr{color:var(--muted-2);}
+  .card h3{font-family:var(--display);font-weight:600;font-size:20px;margin:0 0 6px;letter-spacing:-.01em;}
+  .card .sub{font-family:var(--mono);font-size:12.5px;color:var(--trace);margin-bottom:14px;}
+  .card p{margin:0 0 18px;color:#bcc2cb;font-size:14.5px;line-height:1.62;}
+  .card .meta{margin-top:auto;display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;}
+  .card .meta .t{font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line-soft);padding:3px 8px;border-radius:5px;}
+  .card .links{display:flex;flex-wrap:wrap;gap:14px;font-family:var(--mono);font-size:12.5px;}
+  .card .links a{color:var(--muted);display:inline-flex;align-items:center;gap:6px;transition:color .16s;}
+  .card .links a:hover{color:var(--trace);}
+  .card .links a .ic{color:var(--evidence);}
+
+  .proj-more{margin:26px 0 0;font-family:var(--mono);font-size:13px;color:var(--muted);}
+  .proj-more a{color:var(--trace);}
+  .proj-more a:hover{text-decoration:underline;}
+
+  /* ---- timeline (signature) ---- */
+  .timeline{position:relative;margin-left:6px;}
+  .timeline::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:1px;background:linear-gradient(var(--evidence-dim),var(--line) 60%);}
+  .tl-item{position:relative;padding:0 0 38px 34px;}
+  .tl-item:last-child{padding-bottom:0;}
+  .tl-item::before{content:"";position:absolute;left:-4px;top:5px;width:9px;height:9px;border-radius:50%;background:var(--ink);border:2px solid var(--evidence);}
+  .tl-date{font-family:var(--mono);font-size:12.5px;color:var(--evidence);letter-spacing:.03em;}
+  .tl-title{font-size:18px;font-weight:600;margin:5px 0 4px;color:#fff;}
+  .tl-org{font-family:var(--mono);font-size:12.5px;color:var(--trace);margin-bottom:6px;}
+  .tl-desc{color:var(--muted);font-size:14.5px;max-width:60ch;}
+  .tl-desc a{color:#c8cdd5;border-bottom:1px solid var(--line);transition:color .16s,border-color .16s;}
+  .tl-desc a:hover{color:var(--trace);border-color:var(--trace);}
+
+  /* ---- awards ---- */
+  .award-list{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--line-soft);}
+  .award{display:grid;grid-template-columns:150px 1fr auto;gap:20px;align-items:baseline;
+    padding:22px 4px;border-bottom:1px solid var(--line-soft);transition:background .18s;}
+  .award:hover{background:var(--ink-2);}
+  .award .yr{font-family:var(--mono);font-size:13px;color:var(--muted);}
+  .award .body h4{margin:0 0 4px;font-size:17px;font-weight:600;}
+  .award .body p{margin:0;color:var(--muted);font-size:14px;}
+  .award .rank{font-family:var(--mono);font-size:12px;color:var(--evidence);border:1px solid var(--evidence-dim);
+    padding:5px 11px;border-radius:999px;white-space:nowrap;}
+  @media(max-width:680px){.award{grid-template-columns:1fr;gap:6px;}.award .rank{justify-self:start;}}
+
+  /* ---- certs ---- */
+  .cert-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media(max-width:680px){.cert-grid{grid-template-columns:1fr;}}
+  .cert{border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:22px;transition:border-color .2s;}
+  .cert:hover{border-color:var(--evidence-dim);}
+  .cert .id{font-family:var(--mono);font-size:11px;color:var(--muted-2);letter-spacing:.1em;margin-bottom:14px;}
+  .cert h4{margin:0;font-size:17px;font-weight:600;}
+  .cert span{display:block;font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px;}
+
+  /* ---- contact / footer ---- */
+  footer{padding:88px 0 64px;}
+  .contact-card{
+    border:1px solid var(--line);border-radius:18px;
+    background:linear-gradient(160deg,var(--panel),var(--ink-2));
+    padding:48px 40px;text-align:center;position:relative;overflow:hidden;
+  }
+  .contact-card::after{content:"";position:absolute;bottom:-40%;left:50%;transform:translateX(-50%);
+    width:480px;height:300px;background:radial-gradient(circle,rgba(232,163,61,.13),transparent 70%);}
+  .contact-card .eyebrow{display:block;margin-bottom:16px;}
+  .contact-card h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,4.5vw,40px);margin:0 0 12px;position:relative;}
+  .contact-card p{color:var(--muted);margin:0 auto 28px;max-width:46ch;position:relative;}
+  .contact-links{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;position:relative;}
+  .foot-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:40px;
+    font-family:var(--mono);font-size:12px;color:var(--muted-2);}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease;}
+  .reveal.in{opacity:1;transform:none;}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top"><span class="dot"></span><b>ANN&nbsp;SEOJIN</b></a>
+    <div class="navlinks">
+      <a href="#about">소개</a>
+      <a href="#projects">프로젝트</a>
+      <a href="#timeline">활동</a>
+      <a href="#awards">수상</a>
+      <a href="#certs">자격증</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap hero-inner">
+    <div class="casebar reveal">
+      <span><b>FOCUS</b>&nbsp;디지털 포렌식 · 네트워크 · 리눅스 · 클라우드</span>
+      <span><b>BASE</b>&nbsp;Goyang / Seoul, KR</span>
+    </div>
+    <h1 class="name reveal">안서진<span class="en">Ann Seojin — Security &amp; Digital Forensics</span></h1>
+    <p class="role reveal">윈도우 아티팩트를 추적하고, 멀티 어카운트 클라우드 환경의 <span class="hl">위협을 탐지</span>합니다.</p>
+    <p class="lead reveal">디지털 포렌식과 클라우드 보안을 중심으로, 분석한 내용을 직접 구현하며 배워 온 주니어 보안 엔지니어입니다. 포렌식 아티팩트 분석부터 AWS 멀티 어카운트 SOC 구축까지.</p>
+    <div class="hero-cta reveal">
+      <a class="btn btn-primary" href="https://github.com/annseojin" target="_blank" rel="noopener"><span class="arr">▸</span> GitHub</a>
+      <a class="btn btn-ghost" href="#projects"><span class="arr">▸</span> 프로젝트 보기</a>
+      <a class="btn btn-ghost" href="#timeline"><span class="arr">▸</span> 활동 타임라인</a>
+    </div>
+  </div>
+</header>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-idx">01</span>
+      <h2 class="sec-title">소개</h2>
+      <span class="sec-rule"></span>
+    </div>
+    <div class="about-grid">
+      <div class="reveal">
+        <p>보안을 글로만 익히기보다 <strong>직접 분석하고 만들어 보며</strong> 배워 왔습니다. 윈도우 환경에서 LLM 프로그램이 남기는 흔적을 추적하는 포렌식 연구로 디지털포렌식학회 경찰청장상을 받았고, 샌드박스를 구축해 악성코드 정적·동적 분석을 자동화하거나 다크웹 유출 정보를 수집하는 OSINT 시스템을 만들기도 했습니다.</p>
+        <p>최근에는 클라우드 보안으로 영역을 넓혀, AWS MSA 환경을 IaC로 구축하고 침해사고를 <strong>MITRE ATT&amp;CK</strong>에 매핑하는 SOC·CERT 프로젝트를 진행했습니다. 또한 멋쟁이 사자처럼 대학에서 백엔드 파트장과 부대표를 맡아 팀과 커뮤니티를 운영한 경험이 있습니다.</p>
+        <p>분석가의 시선과 엔지니어의 손을 함께 가진 보안 인재가 되는 것을 목표로 합니다.</p>
+      </div>
+      <div class="focus-card reveal">
+        <h3>// 관심 · 역량</h3>
+        <div class="tags">
+          <span class="tag key">디지털 포렌식</span>
+          <span class="tag key">네트워크</span>
+          <span class="tag key">리눅스</span>
+          <span class="tag key">클라우드 (AWS)</span>
+          <span class="tag">악성코드 분석</span>
+          <span class="tag">Windows Artifact</span>
+          <span class="tag">MITRE ATT&amp;CK</span>
+          <span class="tag">OSINT · CTI</span>
+          <span class="tag">Sandbox · YARA</span>
+          <span class="tag">IaC</span>
+          <span class="tag">모의해킹</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-idx">02</span>
+      <h2 class="sec-title">프로젝트</h2>
+      <span class="sec-rule"></span>
+    </div>
+    <div class="proj-grid">
+
+      <article class="card reveal">
+        <div class="evid"><span>EV — 01</span><span class="yr">2026</span></div>
+        <h3>woowa-beavers</h3>
+        <div class="sub">AWS Multi-Account SOC · Baby Beavers CERT</div>
+        <p>AWS MSA 환경을 IaC로 직접 구축하고, 그 위에서 발생한 침해사고를 타임라인으로 정리해 MITRE ATT&amp;CK TTP에 매핑한 사례집까지 만들었습니다. CTI·SIEM·SOAR·EDR를 연결한 멀티 어카운트 SOC 프로젝트입니다.</p>
+        <div class="meta">
+          <span class="t">AWS</span><span class="t">IaC</span><span class="t">MSA</span><span class="t">MITRE ATT&amp;CK</span><span class="t">SOC</span>
+        </div>
+        <div class="links">
+          <a href="https://github.com/woowa-beavers/AWS-Breach-Casebook" target="_blank" rel="noopener"><span class="ic">▸</span> Breach Casebook</a>
+          <a href="https://github.com/woowa-beavers/woowa-beavers-IaC" target="_blank" rel="noopener"><span class="ic">▸</span> IaC</a>
+          <a href="https://medium.com/woowa-beavers" target="_blank" rel="noopener"><span class="ic">▸</span> Blog</a>
+        </div>
+      </article>
+
+      <article class="card reveal">
+        <div class="evid"><span>EV — 02</span><span class="yr">2025</span></div>
+        <h3>Windows LLM 아티팩트 분석</h3>
+        <div class="sub">forensicbread · White Hat School 3기</div>
+        <p>윈도우 환경에서 Perplexity 등 LLM 프로그램이 남기는 아티팩트를 추출·분석했습니다. 디지털포렌식학회 <strong>경찰청장상</strong>을 수상한 연구입니다.</p>
+        <div class="meta">
+          <span class="t">Windows Forensics</span><span class="t">Artifact</span><span class="t">DFIR</span>
+        </div>
+        <div class="links">
+          <a href="https://github.com/forensicbread/WHS_extract_llm" target="_blank" rel="noopener"><span class="ic">▸</span> WHS_extract_llm</a>
+          <a href="https://github.com/forensicbread" target="_blank" rel="noopener"><span class="ic">▸</span> Org</a>
+        </div>
+      </article>
+
+      <article class="card reveal">
+        <div class="evid"><span>EV — 03</span><span class="yr">2024 — 2025</span></div>
+        <h3>악성코드 분석 자동화</h3>
+        <div class="sub">Sandbox · 정적/동적 분석 자동화</div>
+        <p>샌드박스를 직접 구축해 악성코드의 정적·동적 분석을 자동화했습니다. YARA 기반 정적 분석, MobSF 연동, 침해사고 대응을 위한 자동 탐지 파이프라인을 다뤘습니다. (구름 KDT 정보보호)</p>
+        <div class="meta">
+          <span class="t">Sandbox</span><span class="t">YARA</span><span class="t">MobSF</span><span class="t">Python</span>
+        </div>
+        <div class="links">
+          <a href="https://github.com/annseojin/Malware_Analysis_Automation" target="_blank" rel="noopener"><span class="ic">▸</span> Malware Automation</a>
+          <a href="https://github.com/annseojin/SandBox" target="_blank" rel="noopener"><span class="ic">▸</span> SandBox</a>
+        </div>
+      </article>
+
+      <article class="card reveal">
+        <div class="evid"><span>EV — 04</span><span class="yr">2025</span></div>
+        <h3>Dark_OSINT</h3>
+        <div class="sub">다크웹 위협 인텔리전스</div>
+        <p>다크웹의 유출 정보를 수집·알림하는 OSINT 기반 위협 인텔리전스 시스템을 개발했습니다. 모의해킹 실습으로 만든 서비스 포트 스캐너, PCAP(TCP/IP) 도구도 함께 다뤘습니다.</p>
+        <div class="meta">
+          <span class="t">OSINT</span><span class="t">CTI</span><span class="t">Dark Web</span><span class="t">Python</span>
+        </div>
+        <div class="links">
+          <a href="https://github.com/annseojin/Dark_OSINT" target="_blank" rel="noopener"><span class="ic">▸</span> Dark_OSINT</a>
+          <a href="https://github.com/annseojin/Port_Scanner" target="_blank" rel="noopener"><span class="ic">▸</span> Port Scanner</a>
+        </div>
+      </article>
+
+      <article class="card reveal">
+        <div class="evid"><span>EV — 05</span><span class="yr">2025</span></div>
+        <h3>Digital Forensics Challenge 2025</h3>
+        <div class="sub">DFC 2025 · 전체 15위</div>
+        <p>화이트햇 스쿨 3기 팀원들과 DFC 2025에 참가하여 디지털 포렌식 문제를 분석·풀이했고, 전체 15위를 기록했습니다.</p>
+        <div class="meta">
+          <span class="t">Digital Forensics</span><span class="t">CTF</span>
+        </div>
+        <div class="links">
+          <a href="https://github.com/annseojin/Digital-Forensics-Challenge-2025" target="_blank" rel="noopener"><span class="ic">▸</span> GitHub</a>
+          <a href="https://www.dfchallenge.org/" target="_blank" rel="noopener"><span class="ic">▸</span> DFC</a>
+        </div>
+      </article>
+
+      <article class="card reveal">
+        <div class="evid"><span>EV — 06</span><span class="yr">2026</span></div>
+        <h3>aegis_project</h3>
+        <div class="sub">취약점 진단 및 평가 · 캡스톤디자인</div>
+        <p>취약점 진단 및 평가를 주제로 한 캡스톤디자인 프로젝트입니다. 실제 환경의 보안 취약점을 식별하고 평가하는 과정을 다뤘습니다.</p>
+        <div class="meta">
+          <span class="t">Vulnerability Assessment</span><span class="t">Shell</span>
+        </div>
+        <div class="links">
+          <a href="https://github.com/annseojin/aegis_project" target="_blank" rel="noopener"><span class="ic">▸</span> GitHub</a>
+        </div>
+      </article>
+
+    </div>
+    <p class="proj-more reveal">이 외에도 블록체인 투표 시스템(BaggyJeans)·NFT 마켓플레이스 등 Web3 실습과 다양한 학습 프로젝트가 있습니다. <a href="https://github.com/annseojin?tab=repositories" target="_blank" rel="noopener">GitHub에서 전체 보기 ▸</a></p>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-idx">03</span>
+      <h2 class="sec-title">활동 타임라인</h2>
+      <span class="sec-rule"></span>
+    </div>
+    <div class="timeline">
+
+      <div class="tl-item reveal">
+        <div class="tl-date">2024.01 — 2024.12</div>
+        <div class="tl-title">멋쟁이 사자처럼 대학 12기 수료</div>
+        <div class="tl-org">운영진 · 백엔드 파트장</div>
+        <div class="tl-desc">중부대학교(고양) 백엔드 파트를 이끌며 팀 프로젝트와 세션 운영을 담당했습니다.</div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-date">2024.08 — 2025.03</div>
+        <div class="tl-title">구름 KDT 정보보호 전문가 양성 클래스 9회차 수료</div>
+        <div class="tl-org">goorm KDT · Information Security</div>
+        <div class="tl-desc">정보보호 전반에 대한 집중 교육 과정을 수료했습니다.</div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-date">2025.01 — 2025.12</div>
+        <div class="tl-title">멋쟁이 사자처럼 대학 13기 수료</div>
+        <div class="tl-org">운영진 · 부대표</div>
+        <div class="tl-desc">부대표로서 동아리 운영과 커뮤니티 활동 전반을 이끌었습니다.</div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-date">2025.03 — 2025.09</div>
+        <div class="tl-title">화이트햇 스쿨 3기 수료</div>
+        <div class="tl-org">차세대 보안리더 양성 프로그램</div>
+        <div class="tl-desc">윈도우 LLM 아티팩트 분석 등 디지털 포렌식 연구를 진행했고(<a href="https://github.com/forensicbread" target="_blank" rel="noopener">forensicbread</a>), 수료 후 팀원들과 <a href="https://github.com/annseojin/Digital-Forensics-Challenge-2025" target="_blank" rel="noopener">DFC 2025</a>에 참가해 15위를 기록했습니다.</div>
+      </div>
+
+      <div class="tl-item reveal">
+        <div class="tl-date">2026.03 — 2026.05</div>
+        <div class="tl-title">Baby Beavers 1기 수료</div>
+        <div class="tl-org">클라우드 보안 주니어 양성 프로그램</div>
+        <div class="tl-desc">AWS MSA 환경을 IaC로 구축하고 침해사고를 MITRE ATT&amp;CK에 매핑하는 SOC·CERT 프로젝트(<a href="https://github.com/woowa-beavers" target="_blank" rel="noopener">woowa-beavers</a>)를 진행하며 클라우드 보안과 위협 탐지를 학습했습니다.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- AWARDS -->
+<section id="awards">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-idx">04</span>
+      <h2 class="sec-title">수상 이력</h2>
+      <span class="sec-rule"></span>
+    </div>
+    <div class="award-list reveal">
+
+      <div class="award">
+        <span class="yr">2025</span>
+        <div class="body">
+          <h4>디지털포렌식학회 경찰청장상</h4>
+          <p>윈도우 환경에서의 Perplexity(LLM) 프로그램 아티팩트 분석</p>
+        </div>
+        <span class="rank">경찰청장상</span>
+      </div>
+
+      <div class="award">
+        <span class="yr">2024 · 1학기</span>
+        <div class="body">
+          <h4>중부대학교 캡스톤 디자인 경진대회 입선</h4>
+          <p>팀 “Want it” · 보안 분야 캡스톤 프로젝트</p>
+        </div>
+        <span class="rank">입선</span>
+      </div>
+
+      <div class="award">
+        <span class="yr">2023 · 12</span>
+        <div class="body">
+          <h4>조선 해운 빅데이터 아이디어 공모 경진대회 최우수상</h4>
+          <p>승선원 데이터 기반 인사 및 스케줄 관리 시스템 · 국립한국해양대학교</p>
+        </div>
+        <span class="rank">최우수상</span>
+      </div>
+
+      <div class="award">
+        <span class="yr">2023 · 12</span>
+        <div class="body">
+          <h4>조선 해운 빅데이터 아이디어 공모 경진대회 장려상</h4>
+          <p>선박 보안 강화를 통한 해양 사고 예방 애플리케이션 개발</p>
+        </div>
+        <span class="rank">장려상</span>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CERTS -->
+<section id="certs">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="sec-idx">05</span>
+      <h2 class="sec-title">자격증</h2>
+      <span class="sec-rule"></span>
+    </div>
+    <div class="cert-grid">
+      <div class="cert reveal">
+        <div class="id">CERT · 01</div>
+        <h4>네트워크관리사 2급</h4>
+        <span>Network</span>
+      </div>
+      <div class="cert reveal">
+        <div class="id">CERT · 02</div>
+        <h4>리눅스마스터 2급</h4>
+        <span>Linux</span>
+      </div>
+      <div class="cert reveal">
+        <div class="id">CERT · 03</div>
+        <h4>ICDL Start Certificate</h4>
+        <span>Digital Literacy</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<footer id="contact">
+  <div class="wrap">
+    <div class="contact-card reveal">
+      <span class="eyebrow">// 링크</span>
+      <h2>작업 전체는 GitHub에서.</h2>
+      <p>이 포트폴리오에 담은 프로젝트와 그 외 작업들을 GitHub에서 볼 수 있습니다.</p>
+      <div class="contact-links">
+        <a class="btn btn-primary" href="https://github.com/annseojin" target="_blank" rel="noopener"><span class="arr">▸</span> github.com/annseojin</a>
+        <a class="btn btn-ghost" href="mailto:hjsj1226@gmail.com"><span class="arr">▸</span> hjsj1226@gmail.com</a>
+      </div>
+    </div>
+    <div class="foot-meta">
+      <span>© 2026 ANN SEOJIN</span>
+      <span>Security · Digital Forensics · Cloud</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // scroll reveal
+  (function(){
+    var els = document.querySelectorAll('.reveal');
+    if(!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      els.forEach(function(e){e.classList.add('in');});
+      return;
+    }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){
+        if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    },{threshold:0.12, rootMargin:'0px 0px -40px 0px'});
+    els.forEach(function(e){io.observe(e);});
+  })();
+</script>
+</body>
+</html>
