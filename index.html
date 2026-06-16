@@ -235,20 +235,9 @@
   .cert h4{margin:0;font-size:17px;font-weight:600;}
   .cert span{display:block;font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:6px;}
 
-  /* ---- contact / footer ---- */
-  footer{padding:88px 0 64px;}
-  .contact-card{
-    border:1px solid var(--line);border-radius:18px;
-    background:linear-gradient(160deg,var(--panel),var(--ink-2));
-    padding:48px 40px;text-align:center;position:relative;overflow:hidden;
-  }
-  .contact-card::after{content:"";position:absolute;bottom:-40%;left:50%;transform:translateX(-50%);
-    width:480px;height:300px;background:radial-gradient(circle,rgba(232,163,61,.13),transparent 70%);}
-  .contact-card .eyebrow{display:block;margin-bottom:16px;}
-  .contact-card h2{font-family:var(--display);font-weight:600;font-size:clamp(26px,4.5vw,40px);margin:0 0 12px;position:relative;}
-  .contact-card p{color:var(--muted);margin:0 auto 28px;max-width:46ch;position:relative;}
-  .contact-links{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;position:relative;}
-  .foot-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:40px;
+  /* ---- footer ---- */
+  footer{padding:40px 0 56px;}
+  .foot-meta{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
     font-family:var(--mono);font-size:12px;color:var(--muted-2);}
 
   /* reveal */
@@ -285,6 +274,8 @@
       <a class="btn btn-primary" href="https://github.com/annseojin" target="_blank" rel="noopener"><span class="arr">▸</span> GitHub</a>
       <a class="btn btn-ghost" href="#projects"><span class="arr">▸</span> 프로젝트 보기</a>
       <a class="btn btn-ghost" href="#timeline"><span class="arr">▸</span> 활동 타임라인</a>
+      <a class="btn btn-ghost" href="https://sejin0902.tistory.com/" target="_blank" rel="noopener"><span class="arr">▸</span> Tistory</a>
+      <a class="btn btn-ghost" href="mailto:hjsj1226@gmail.com"><span class="arr">▸</span> 이메일</a>
     </div>
   </div>
 </header>
@@ -552,18 +543,9 @@
 <!-- CONTACT -->
 <footer id="contact">
   <div class="wrap">
-    <div class="contact-card reveal">
-      <span class="eyebrow">// 링크</span>
-      <h2>작업 전체는 GitHub에서.</h2>
-      <p>이 포트폴리오에 담은 프로젝트와 그 외 작업들을 GitHub에서 볼 수 있습니다.</p>
-      <div class="contact-links">
-        <a class="btn btn-primary" href="https://github.com/annseojin" target="_blank" rel="noopener"><span class="arr">▸</span> github.com/annseojin</a>
-        <a class="btn btn-ghost" href="mailto:hjsj1226@gmail.com"><span class="arr">▸</span> hjsj1226@gmail.com</a>
-      </div>
-    </div>
     <div class="foot-meta">
       <span>© 2026 ANN SEOJIN</span>
-      <span>Security · Digital Forensics · Cloud</span>
+      <span>Digital Forensics · Network · Linux · Cloud</span>
     </div>
   </div>
 </footer>
